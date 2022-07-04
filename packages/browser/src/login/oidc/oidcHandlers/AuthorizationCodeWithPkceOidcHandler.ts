@@ -76,7 +76,7 @@ export default class AuthorizationCodeWithPkceOidcHandler
         // eslint-disable-next-line no-underscore-dangle
         state: signingRequest.state._id,
         // eslint-disable-next-line no-underscore-dangle
-        codeVerifier: signingRequest.state._code_verifier,
+        codeVerifier: signingRequest.state._code_verifier ?? "",
         targetUrl: signingRequest.url.toString(),
       });
     } catch (err: unknown) {
