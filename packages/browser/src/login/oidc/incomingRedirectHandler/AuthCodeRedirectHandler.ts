@@ -148,7 +148,7 @@ export class AuthCodeRedirectHandler implements IIncomingRedirectHandler {
 
     // Delete oidc-client-specific session information from storage. oidc-client
     // is no longer used for the token exchange, so it doesn't perform this automatically.
-    window.localStorage.removeItem(`oidc.${oauthState}`);
+    await this.storageUtility.delete(`oidc.${oauthState}`);
 
     let refreshOptions: RefreshOptions | undefined;
     if (tokens.refreshToken !== undefined) {

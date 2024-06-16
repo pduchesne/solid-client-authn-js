@@ -1,6 +1,6 @@
 {
   "name": "@inrupt/solid-client-authn-browser",
-  "version": "2.2.0",
+  "version": "2.2.0-hilats",
   "license": "MIT",
   "types": "dist/index.d.ts",
   "browser": "dist/index.js",

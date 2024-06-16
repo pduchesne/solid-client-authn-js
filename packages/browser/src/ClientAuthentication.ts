@@ -110,8 +110,8 @@ export default class ClientAuthentication extends ClientAuthenticationBase {
       // his value, so we should ensure it's bound to `window` rather than to
       // ClientAuthentication, to avoid the following error:
       // > 'fetch' called on an object that does not implement interface Window.
-      this.fetch = redirectInfo.fetch.bind(window);
-      this.boundLogout = redirectInfo.getLogoutUrl;
+        this.fetch = typeof window == 'undefined' ? redirectInfo.fetch.bind(global) : redirectInfo.fetch.bind(window);
+        this.boundLogout = redirectInfo.getLogoutUrl;
 
       // Strip the oauth params:
       await this.cleanUrlAfterRedirect(url);
@@ -138,24 +138,26 @@ export default class ClientAuthentication extends ClientAuthenticationBase {
   };
 
   private async cleanUrlAfterRedirect(url: string): Promise<void> {
-    const cleanedUpUrl = removeOpenIdParams(url).href;
+    if (typeof window != 'undefined' && window.history) {
+        const cleanedUpUrl = removeOpenIdParams(url).href;
 
-    // Remove OAuth-specific query params (since the login flow finishes with
-    // the browser being redirected back with OAuth2 query params (e.g. for
-    // 'code' and 'state'), and so if the user simply refreshes this page our
-    // authentication library will be called again with what are now invalid
-    // query parameters!).
-    window.history.replaceState(null, "", cleanedUpUrl);
-    while (window.location.href !== cleanedUpUrl) {
-      // Poll the current URL every ms. Active polling is required because
-      // window.history.replaceState is asynchronous, but the associated
-      // 'popstate' event which should be listened to is only sent on active
-      // navigation, which we will not have here.
-      // See https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event#when_popstate_is_sent
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 1);
-      });
+        // Remove OAuth-specific query params (since the login flow finishes with
+        // the browser being redirected back with OAuth2 query params (e.g. for
+        // 'code' and 'state'), and so if the user simply refreshes this page our
+        // authentication library will be called again with what are now invalid
+        // query parameters!).
+        window.history.replaceState(null, "", cleanedUpUrl);
+        while (window.location.href !== cleanedUpUrl) {
+          // Poll the current URL every ms. Active polling is required because
+          // window.history.replaceState is asynchronous, but the associated
+          // 'popstate' event which should be listened to is only sent on active
+          // navigation, which we will not have here.
+          // See https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event#when_popstate_is_sent
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise<void>((resolve) => {
+            setTimeout(() => resolve(), 1);
+          });
+        }
     }
   }
 }
