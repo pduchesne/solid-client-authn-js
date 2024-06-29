@@ -110,7 +110,11 @@ export default class ClientAuthentication extends ClientAuthenticationBase {
       // his value, so we should ensure it's bound to `window` rather than to
       // ClientAuthentication, to avoid the following error:
       // > 'fetch' called on an object that does not implement interface Window.
-        this.fetch = typeof window == 'undefined' ? redirectInfo.fetch.bind(global) : redirectInfo.fetch.bind(window);
+        this.fetch = typeof window != 'undefined' ? redirectInfo.fetch.bind(window) :
+                     typeof self != 'undefined' ? redirectInfo.fetch.bind(self) :
+                     typeof global != 'undefined' ? redirectInfo.fetch.bind(global) :
+                     redirectInfo.fetch ;
+
         this.boundLogout = redirectInfo.getLogoutUrl;
 
       // Strip the oauth params:
