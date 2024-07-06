@@ -92,7 +92,10 @@ export async function silentlyAuthenticate(
     // so that we can restore it after completing the silent authentication
     // on incoming redirect. This way, the user is eventually redirected back
     // to the page they were on and not to the app's redirect page.
-    await localStorage.set(KEY_CURRENT_URL, window.location.href);
+
+    if (typeof window == 'object' && window.location?.href)
+      await localStorage.set(KEY_CURRENT_URL, window.location.href);
+
     await clientAuthn.login(
       {
         sessionId,
@@ -322,7 +325,7 @@ export class Session implements IHasSessionEventListener {
     if (isLoggedIn(sessionInfo)) {
       this.setSessionInfo(sessionInfo);
       const currentUrl = await this.insecureStorage.get(KEY_CURRENT_URL);
-      if (currentUrl === null) {
+      if (!currentUrl) {
         // The login event can only be triggered **after** the user has been
         // redirected from the IdP with access and ID tokens.
         (this.events as EventEmitter).emit(EVENTS.LOGIN);

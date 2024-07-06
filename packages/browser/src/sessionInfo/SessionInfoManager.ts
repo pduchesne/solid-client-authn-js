@@ -50,7 +50,11 @@ export async function clear(
   storage: IStorageUtility,
 ): Promise<void> {
   await clearBase(sessionId, storage);
-  await clearOidcPersistentStorage();
+
+  // WARN clearOidcPersistentStorage currently relies on window.localStorage
+  // this will fail in e.g. browser extensions
+  if (typeof window == 'object' && window.localStorage)
+    await clearOidcPersistentStorage();
 }
 
 /**
