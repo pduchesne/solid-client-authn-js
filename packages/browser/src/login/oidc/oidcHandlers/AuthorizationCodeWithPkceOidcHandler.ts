@@ -53,7 +53,7 @@ export default class AuthorizationCodeWithPkceOidcHandler
       authority: oidcLoginOptions.issuer.toString(),
       client_id: oidcLoginOptions.client.clientId,
       client_secret: oidcLoginOptions.client.clientSecret,
-      redirect_uri: oidcLoginOptions.redirectUrl,
+      redirect_uri: oidcLoginOptions.redirectUrl || "",
       response_type: "code",
       scope: DEFAULT_SCOPES,
       filterProtocolClaims: true,
@@ -69,14 +69,14 @@ export default class AuthorizationCodeWithPkceOidcHandler
     const oidcClientLibrary = new OidcClient(oidcOptions);
 
     try {
-      const signingRequest = await oidcClientLibrary.createSigninRequest();
+      const signingRequest = await oidcClientLibrary.createSigninRequest({});
       // Make sure to await the promise before returning so that the error is caught.
       return await this.handleRedirect({
         oidcLoginOptions,
         // eslint-disable-next-line no-underscore-dangle
-        state: signingRequest.state._id,
+        state: signingRequest.state.id,
         // eslint-disable-next-line no-underscore-dangle
-        codeVerifier: signingRequest.state._code_verifier ?? "",
+        codeVerifier: signingRequest.state.code_verifier ?? "",
         targetUrl: signingRequest.url.toString(),
       });
     } catch (err: unknown) {

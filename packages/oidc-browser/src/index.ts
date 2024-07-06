@@ -29,8 +29,8 @@ export {
   UserManager,
   AccessTokenEvents,
   MetadataService,
-  CordovaPopupNavigator,
-  CordovaIFrameNavigator,
+  //CordovaPopupNavigator,
+  //CordovaIFrameNavigator,
   CheckSessionIFrame,
   SigninRequest,
   SigninResponse,
@@ -39,7 +39,7 @@ export {
   SessionMonitor,
   // Global,
   User,
-} from "@inrupt/oidc-client";
+} from "oidc-client-ts";
 
 export { registerClient } from "./dcr/clientRegistrar";
 export {
