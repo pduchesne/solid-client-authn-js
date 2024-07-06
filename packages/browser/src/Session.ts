@@ -37,6 +37,7 @@ import type ClientAuthentication from "./ClientAuthentication";
 import { getClientAuthenticationWithDependencies } from "./dependencies";
 import { KEY_CURRENT_SESSION, KEY_CURRENT_URL } from "./constant";
 import BrowserStorage from "./storage/BrowserStorage";
+import Redirector from "./login/oidc/Redirector";
 
 export interface ISessionOptions {
   /**
@@ -55,6 +56,8 @@ export interface ISessionOptions {
    * An instance of the library core. Typically obtained using `getClientAuthenticationWithDependencies`.
    */
   clientAuthentication: ClientAuthentication;
+
+  redirector?: Redirector;
 }
 
 export interface IHandleIncomingRedirectOptions {
@@ -78,13 +81,16 @@ export interface IHandleIncomingRedirectOptions {
    * using the browser's current location.
    */
   url?: string;
+
+  handleRedirect?: (redirectUrl: string) => void
 }
 
 export async function silentlyAuthenticate(
   sessionId: string,
   clientAuthn: ClientAuthentication,
   session: Session,
-  localStorage: IStorage
+  localStorage: IStorage,
+  handleRedirect?: (redirectUrl: string) => void
 ): Promise<boolean> {
   const storedSessionInfo = await clientAuthn.validateCurrentSession(sessionId);
   if (storedSessionInfo !== null) {
@@ -103,6 +109,7 @@ export async function silentlyAuthenticate(
         oidcIssuer: storedSessionInfo.issuer,
         redirectUrl: storedSessionInfo.redirectUrl,
         clientId: storedSessionInfo.clientAppId,
+        handleRedirect,
         clientSecret: storedSessionInfo.clientAppSecret,
         tokenType: storedSessionInfo.tokenType ?? "DPoP",
       },
@@ -170,9 +177,12 @@ export class Session implements IHasSessionEventListener {
       this.clientAuthentication = getClientAuthenticationWithDependencies({
         secureStorage: sessionOptions.secureStorage,
         insecureStorage: sessionOptions.insecureStorage,
+        redirector: sessionOptions.redirector
       });
     } else {
-      this.clientAuthentication = getClientAuthenticationWithDependencies({});
+      this.clientAuthentication = getClientAuthenticationWithDependencies({
+        redirector: sessionOptions.redirector
+      });
     }
 
     if (sessionOptions.sessionInfo) {
@@ -350,13 +360,15 @@ export class Session implements IHasSessionEventListener {
           storedSessionId,
           this.clientAuthentication,
           this,
-          this.insecureStorage
+          this.insecureStorage,
+          options.handleRedirect
         );
         // At this point, we know that the main window will imminently be redirected.
         // However, this redirect is asynchronous and there is no way to halt execution
         // until it happens precisely. That's why the current Promise simply does not
         // resolve.
         if (attemptedSilentAuthentication) {
+          this.tokenRequestInProgress = false;
           return new Promise(() => {});
         }
       }

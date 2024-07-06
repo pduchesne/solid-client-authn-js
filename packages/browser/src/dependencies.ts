@@ -54,6 +54,7 @@ import TokenRefresher from "./login/oidc/refresh/TokenRefresher";
 export function getClientAuthenticationWithDependencies(dependencies: {
   secureStorage?: IStorage;
   insecureStorage?: IStorage;
+  redirector?: Redirector
 }): ClientAuthentication {
   const inMemoryStorage = new InMemoryStorage();
   const secureStorage = dependencies.secureStorage || inMemoryStorage;
@@ -75,7 +76,7 @@ export function getClientAuthenticationWithDependencies(dependencies: {
     clientRegistrar,
   );
 
-  const redirector = new Redirector();
+  const redirector = dependencies.redirector || new Redirector();
 
   // make new handler for redirect and login
   const loginHandler = new OidcLoginHandler(
