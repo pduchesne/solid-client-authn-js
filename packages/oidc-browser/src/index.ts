@@ -32,7 +32,7 @@ export {
   //CordovaPopupNavigator,
   //CordovaIFrameNavigator,
   CheckSessionIFrame,
-  SigninRequest,
+  //SigninRequest,  // bug : not exported in oidc-client-ts transpiled artifacts
   SigninResponse,
   // TODO: Investigate why this fails
   // TokenRevocationClient,
